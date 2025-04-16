@@ -9,11 +9,16 @@ from sqlalchemy import Column, Integer, String, DateTime, JSON, create_engine, a
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@db:5432/eld_db")
+# --- Настройка подключения к базе ---
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://user:password@db:5432/eld_db"
+)
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
+# --- Модели SQLAlchemy ---
 class Driver(Base):
     __tablename__ = "drivers"
     id = Column(String, primary_key=True, index=True)
@@ -27,8 +32,10 @@ class LogEntry(Base):
     event_type = Column(String, nullable=False)
     meta = Column(JSON, nullable=True)
 
+# Создание таблиц
 Base.metadata.create_all(bind=engine)
 
+# --- Pydantic‑схема ---
 class LogEntrySchema(BaseModel):
     id: int
     driver_id: str
@@ -39,11 +46,11 @@ class LogEntrySchema(BaseModel):
     class Config:
         orm_mode = True
 
+# --- FastAPI ---
 app = FastAPI(title="ELD Platform API")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+    allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
 
 def get_db():
@@ -55,8 +62,8 @@ def get_db():
 
 @app.get("/api/logs", response_model=List[LogEntrySchema])
 def get_logs(
-    start: datetime.datetime = Query(...),
-    end:   datetime.datetime = Query(...),
+    start: datetime.datetime = Query(..., description="Start ISO"),
+    end:   datetime.datetime = Query(..., description="End ISO"),
     db:    Session = Depends(get_db)
 ):
     if start > end:

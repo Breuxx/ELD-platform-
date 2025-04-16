@@ -9,11 +9,12 @@ from sqlalchemy import Column, Integer, String, DateTime, JSON, create_engine, a
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
-# --- Настройка подключения к базе ---
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://user:password@db:5432/eld_db"
-)
+import sys
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    print("❌ ERROR: DATABASE_URL is not set", file=sys.stderr)
+    sys.exit(1)
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()

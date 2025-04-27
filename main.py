@@ -156,3 +156,26 @@ async def websocket_endpoint(ws: WebSocket):
             await asyncio.sleep(30)
     except WebSocketDisconnect:
         connections.remove(ws)
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/ws-test", response_class=HTMLResponse)
+async def websocket_test_page():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><title>ELD WS Test</title></head>
+    <body>
+      <h3>ELD WebSocket Tester</h3>
+      <div id="log" style="white-space: pre-wrap; border:1px solid #ccc; padding:8px;"></div>
+      <script>
+        const log = document.getElementById('log');
+        const ws = new WebSocket("wss://eld-platform-production.up.railway.app/ws/eld");
+        ws.onopen    = () => log.textContent += '✅ Connected\\n';
+        ws.onmessage = e => log.textContent += '📨 ' + e.data + '\\n';
+        ws.onclose   = () => log.textContent += '❌ Disconnected\\n';
+        ws.onerror   = () => log.textContent += '⚠️ Error\\n';
+      </script>
+    </body>
+    </html>
+    """
